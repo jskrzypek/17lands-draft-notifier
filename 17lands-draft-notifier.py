@@ -24,7 +24,7 @@ from functools import lru_cache
 from pathlib import Path
 import re
 from sys import stdin
-from typing import Any, Literal, cast
+from typing import Literal, cast
 
 
 class SetAddAction(Action):
@@ -36,6 +36,7 @@ class SetAddAction(Action):
 
 parser = ArgumentParser()
 parser.add_argument("ratings", help="CSV file with ratings", type=Path)
+parser.add_argument("ids", help="CSV file with ids", type=Path)
 parser.add_argument(
     "--ratings-column",
     "-r",
@@ -264,17 +265,24 @@ class DraftPack:
 
 
 @lru_cache(maxsize=1)
-def build_dict_by_card_id(ratings_file: Path) -> dict[str, CardRating]:
+def build_dict_by_card_id(
+    ratings_file: Path,
+    ids_file: Path,
+) -> dict[str, CardRating]:
     ratings_dict: dict[str, CardRating] = {}
-    for rating in DictReader(ratings_file.open("rt", encoding="utf-8")):
-        ratings_dict[rating["CardID"]] = CardRating(cast(Card, rating))
+    name_to_id = {
+        name.strip(): card_id
+        for card_id, name in DictReader(ids_file.open("rt", encoding="utf-8"))
+    }
+    for card in DictReader(ratings_file.open("rt", encoding="utf-8")):
+        ratings_dict[name_to_id[card["Name"]]] = CardRating(cast(Card, card))
     return ratings_dict
 
 
 if __name__ == "__main__":
     args = parser.parse_args()
     print(args)
-    ratings_by_id: dict[str, CardRating] = build_dict_by_card_id(args.ratings)
+    ratings_by_id = build_dict_by_card_id(args.ratings, args.ids)
 
     while True:
         line = stdin.readline()
