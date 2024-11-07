@@ -54,7 +54,7 @@ Copy the output into a file on your computer.
 Basic usage:
 
 ```
-> pipx run seventeenlands |
+> pipx run seventeenlands 2>&1  |
     17lands-draft-notifier ratings.csv ids.csv \
         --ratings-column "GIH WR" -r "GP WR" -r='IWD' -r="-ALSA"
 ```

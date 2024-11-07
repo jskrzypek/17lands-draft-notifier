@@ -106,7 +106,7 @@ class CardRating:
     card_id: int  # "CardID"
     color: str  # "Color"
     rarity: str  # "Rarity"
-
+    card: Card
     _num_seen: int | None  # "# Seen"
     _alsa: float | None  # "ALSA"
     _num_picked: int | None  # "# Picked"
@@ -125,6 +125,7 @@ class CardRating:
     _iwd: float | None  # "IWD"
 
     def __init__(self, card: Card) -> None:
+        self.card = card
         self.name = card["Name"]
         self.card_id = int(card["CardID"])
         self.color = card["Color"]
@@ -270,12 +271,20 @@ def build_dict_by_card_id(
     ids_file: Path,
 ) -> dict[str, CardRating]:
     ratings_dict: dict[str, CardRating] = {}
-    name_to_id = {
-        name.strip(): card_id
-        for card_id, name in DictReader(ids_file.open("rt", encoding="utf-8"))
+    cards_by_name: dict[str, dict] = {
+        card["Name"].strip(): cast(Card, card)
+        for card in DictReader(ids_file.open("rt", encoding="utf-8"))
     }
-    for card in DictReader(ratings_file.open("rt", encoding="utf-8")):
-        ratings_dict[name_to_id[card["Name"]]] = CardRating(cast(Card, card))
+    for i, ratings in enumerate(
+        DictReader(ratings_file.open("rt", encoding="utf-8-sig"))
+    ):
+        card = cards_by_name[ratings["Name"].strip()]
+        ratings_dict[card["CardID"]] = CardRating(
+            cast(
+                Card,
+                card | ratings,
+            )
+        )
     return ratings_dict
 
 
