@@ -1,0 +1,7 @@
+[project]
+name = "17lands-draft-notifier"
+version = "0.1.0"
+description = "pipe 17lands logs to this tool to get ranked picks for each pack"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []
